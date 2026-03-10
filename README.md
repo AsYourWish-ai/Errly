@@ -2,6 +2,8 @@
 
 A minimal Sentry-like error monitoring system with a web dashboard, REST API, MCP server for AI agents, and SDKs for Go, Python, and TypeScript.
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/auttaporn.f)
+
 ---
 
 ## Table of Contents
@@ -17,6 +19,7 @@ A minimal Sentry-like error monitoring system with a web dashboard, REST API, MC
 6. [REST API](#6-rest-api)
 7. [Configuration](#7-configuration)
 8. [Project Structure](#8-project-structure)
+9. [Agent Skills](#9-agent-skills)
 
 ---
 
@@ -327,8 +330,39 @@ Errly/
 │   ├── go/              Go SDK
 │   ├── python/          Python SDK
 │   └── ts/              TypeScript / Next.js SDK
+├── skill/               Agent skill definitions (see below)
 ├── Dockerfile.server
 ├── Dockerfile.mcp
 ├── docker-compose.yml
 └── .mcp.json            MCP config (Claude Code / Claude Desktop)
 ```
+
+---
+
+## 9. Agent Skills
+
+The `skill/` folder contains instruction files for AI agents (Claude Code, Claude Desktop, Cursor, etc.). Each file describes how an agent should help a user with a specific task.
+
+| Skill file | Purpose |
+|------------|---------|
+| [`skill/install-errly.md`](skill/install-errly.md) | Guide an agent to install, start, and verify the Errly server |
+| [`skill/implement-sdk.md`](skill/implement-sdk.md) | Guide an agent to detect the project stack and integrate the SDK |
+| [`skill/use-mcp.md`](skill/use-mcp.md) | Guide an agent to set up MCP and use Errly tools in AI chat |
+
+### Claude Code — slash commands
+
+This repo also ships pre-built slash commands in `.claude/commands/`. Open the project in Claude Code and run:
+
+```
+/install-errly     — set up the Errly server
+/implement-sdk     — integrate the SDK into your project
+/use-mcp           — connect an AI agent via MCP
+```
+
+---
+
+## Support
+
+If you find Errly useful, consider buying me a coffee!
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/auttaporn.f)
