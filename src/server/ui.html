@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Errly</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d1117;
+    --bg2:      #161b22;
+    --bg3:      #21262d;
+    --border:   #30363d;
+    --text:     #e6edf3;
+    --muted:    #7d8590;
+    --accent:   #58a6ff;
+    --red:      #f85149;
+    --orange:   #d29922;
+    --green:    #3fb950;
+    --purple:   #bc8cff;
+    --badge-r:  rgba(248,81,73,.15);
+    --badge-o:  rgba(210,153,34,.15);
+    --badge-g:  rgba(63,185,80,.15);
+    --badge-p:  rgba(188,140,255,.15);
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Header ── */
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  .logo { font-weight: 700; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .spacer { flex: 1; }
+  .key-wrap { display: flex; align-items: center; gap: 6px; }
+  .key-wrap label { color: var(--muted); font-size: 12px; }
+  .key-input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 12px; width: 180px; outline: none; }
+  .key-input:focus { border-color: var(--accent); }
+  .refresh-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Stats bar ── */
+  .stats-bar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; gap: 32px; flex-shrink: 0; align-items: center; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val { font-size: 20px; font-weight: 700; line-height: 1; }
+  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat.total   .stat-val { color: var(--text); }
+  .stat.unresolv .stat-val { color: var(--orange); }
+  .stat.resolv  .stat-val { color: var(--green); }
+  .stat.ignoredst .stat-val { color: var(--muted); }
+  .stat-divider { width: 1px; height: 32px; background: var(--border); }
+
+  /* ── Toolbar ── */
+  .toolbar { background: var(--bg); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; gap: 10px; flex-shrink: 0; }
+  .search { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+  .search::placeholder { color: var(--muted); }
+  .search:focus { border-color: var(--accent); }
+  select { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; }
+  select:focus { border-color: var(--accent); }
+  .clean-wrap { position: relative; display: flex; }
+  .clean-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--muted); padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .clean-btn:hover { border-color: var(--red); color: var(--red); }
+  .clean-menu { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; min-width: 160px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+  .clean-menu.open { display: block; }
+  .clean-menu-item { padding: 8px 14px; cursor: pointer; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .clean-menu-item:hover { background: var(--bg3); color: var(--red); }
+  .clean-menu-item:first-child { border-radius: 6px 6px 0 0; }
+  .clean-menu-item:last-child  { border-radius: 0 0 6px 6px; }
+
+  /* ── Main layout ── */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Issue list ── */
+  .issue-list { flex: 1; overflow-y: auto; min-width: 0; }
+  .issue-list::-webkit-scrollbar { width: 6px; }
+  .issue-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .issue-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+  .issue-row:hover { background: var(--bg2); }
+  .issue-row.active { background: var(--bg3); border-left: 2px solid var(--accent); padding-left: 18px; }
+
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+  .badge-error   { background: var(--badge-r); color: var(--red); }
+  .badge-warning { background: var(--badge-o); color: var(--orange); }
+  .badge-info    { background: var(--badge-p); color: var(--purple); }
+  .badge-debug   { background: var(--bg3);     color: var(--muted); }
+  .badge-resolved { background: var(--badge-g); color: var(--green); }
+  .badge-ignored  { background: var(--bg3);     color: var(--muted); }
+
+  .issue-body { flex: 1; min-width: 0; }
+  .issue-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .issue-meta  { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .meta-tag { display: flex; align-items: center; gap: 3px; }
+  .meta-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+
+  .issue-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+  .count { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .last-seen { font-size: 11px; color: var(--muted); }
+
+  .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+  .loading { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+  /* ── Detail panel ── */
+  .detail { width: 480px; border-left: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width .2s; }
+  .detail.hidden { width: 0; border: none; overflow: hidden; }
+  .detail-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+  .detail-scroll::-webkit-scrollbar { width: 6px; }
+  .detail-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .detail-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+  .detail-title { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; }
+  .close-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1; flex-shrink: 0; }
+  .close-btn:hover { color: var(--text); }
+
+  .detail-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+  .btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid; transition: opacity .15s; }
+  .btn:hover { opacity: .8; }
+  .btn-resolve { background: var(--badge-g); border-color: var(--green); color: var(--green); }
+  .btn-ignore  { background: var(--bg3); border-color: var(--border); color: var(--muted); }
+  .btn-reopen  { background: var(--badge-o); border-color: var(--orange); color: var(--orange); }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .detail-cell { background: var(--bg2); padding: 10px 12px; }
+  .detail-cell-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  .detail-cell-val { font-size: 13px; font-weight: 500; word-break: break-all; }
+
+  .section-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; margin-top: 20px; }
+
+  .stack { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 11px; overflow-x: auto; }
+  .stack-frame { padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+  .stack-frame:last-child { border-bottom: none; }
+  .frame-fn { color: var(--accent); }
+  .frame-loc { color: var(--muted); margin-left: 16px; font-size: 10px; }
+
+  .event-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .event-card-meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 12px; }
+  .event-msg { font-size: 12px; word-break: break-all; }
+  .event-user { font-size: 11px; color: var(--purple); margin-top: 4px; }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+  .tag span { color: var(--text); }
+
+  /* ── Pagination ── */
+  .pagination { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--bg); flex-shrink: 0; }
+  .page-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .page-btn:disabled { opacity: .4; cursor: default; }
+  .page-btn:not(:disabled):hover { border-color: var(--accent); }
+  .page-info { color: var(--muted); font-size: 12px; flex: 1; text-align: center; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  .err-banner { background: var(--badge-r); border: 1px solid var(--red); border-radius: 6px; padding: 10px 14px; color: var(--red); font-size: 12px; margin: 8px 20px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="logo-dot"></div>Errly</div>
+  <div class="spacer"></div>
+  <div class="key-wrap">
+    <label>API Key</label>
+    <input class="key-input" id="apiKey" type="password" placeholder="enter api key…" autocomplete="off">
+  </div>
+  <div id="autoRemoveBadge" style="display:none;font-size:11px;padding:3px 8px;border-radius:4px;background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.3);">auto-remove on</div>
+  <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+</header>
+
+<div class="stats-bar">
+  <div class="stat total">    <div class="stat-val" id="s-total">—</div>      <div class="stat-lbl">Total Issues</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat unresolv">  <div class="stat-val" id="s-unresolved">—</div>  <div class="stat-lbl">Unresolved</div></div>
+  <div class="stat resolv">   <div class="stat-val" id="s-resolved">—</div>    <div class="stat-lbl">Resolved</div></div>
+  <div class="stat ignoredst"><div class="stat-val" id="s-ignored">—</div>     <div class="stat-lbl">Ignored</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat muted">    <div class="stat-val" id="s-events">—</div>      <div class="stat-lbl">Total Events</div></div>
+  <div class="stat muted">    <div class="stat-val" id="s-24h">—</div>         <div class="stat-lbl">Last 24h</div></div>
+</div>
+
+<div id="errBanner" style="display:none"></div>
+
+<div class="toolbar">
+  <input class="search" id="searchInput" placeholder="Search issues…" oninput="onSearch()">
+  <select id="projectFilter" onchange="loadIssues()">
+    <option value="">All projects</option>
+  </select>
+  <select id="statusFilter" onchange="loadIssues()">
+    <option value="">All statuses</option>
+    <option value="unresolved" selected>Unresolved</option>
+    <option value="resolved">Resolved</option>
+    <option value="ignored">Ignored</option>
+  </select>
+  <select id="envFilter" onchange="loadIssues()">
+    <option value="">All envs</option>
+  </select>
+  <div class="clean-wrap" id="cleanWrap">
+    <button class="clean-btn" onclick="toggleCleanMenu(event)">🗑 Clean DB ▾</button>
+    <div class="clean-menu" id="cleanMenu">
+      <div class="clean-menu-item" onclick="cleanDB('resolved')">Delete resolved</div>
+      <div class="clean-menu-item" onclick="cleanDB('ignored')">Delete ignored</div>
+      <div class="clean-menu-item" onclick="cleanDB('')">Delete ALL issues</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden;">
+    <div class="issue-list" id="issueList">
+      <div class="loading"><span class="spinner"></span>Loading…</div>
+    </div>
+    <div class="pagination" id="pagination" style="display:none">
+      <button class="page-btn" id="prevBtn" onclick="prevPage()">← Prev</button>
+      <div class="page-info" id="pageInfo"></div>
+      <button class="page-btn" id="nextBtn" onclick="nextPage()">Next →</button>
+    </div>
+  </div>
+  <div class="detail hidden" id="detail">
+    <div class="detail-scroll" id="detailScroll"></div>
+  </div>
+</div>
+
+<script>
+const PAGE = 25;
+let offset = 0, total = 0, activeId = null, searchTimer = null;
+
+function apiKey() { return document.getElementById('apiKey').value || ''; }
+function hdrs()   { return { 'X-Errly-Key': apiKey(), 'Content-Type': 'application/json' }; }
+
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(path, { headers: hdrs(), ...opts });
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+function showErr(msg) {
+  const b = document.getElementById('errBanner');
+  b.className = 'err-banner';
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 5000);
+}
+
+// ── Stats ────────────────────────────────────────────────
+async function loadStats() {
+  const project = document.getElementById('projectFilter').value;
+  const params  = project ? `?project=${encodeURIComponent(project)}` : '';
+  try {
+    const s = await apiFetch(`/api/v1/stats${params}`);
+    document.getElementById('s-total').textContent      = fmt(s.total);
+    document.getElementById('s-unresolved').textContent = fmt(s.unresolved);
+    document.getElementById('s-resolved').textContent   = fmt(s.resolved);
+    document.getElementById('s-ignored').textContent    = fmt(s.ignored);
+    document.getElementById('s-events').textContent     = fmt(s.total_events);
+    document.getElementById('s-24h').textContent        = fmt(s.events_last_24h);
+  } catch(e) { /* stats failure is non-critical */ }
+}
+
+// ── Dropdowns ────────────────────────────────────────────
+async function loadDropdown(selId, endpoint, key) {
+  try {
+    const data = await apiFetch(endpoint);
+    const sel  = document.getElementById(selId);
+    const cur  = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    (data[key] || []).forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+    if (cur) sel.value = cur;
+  } catch(e) { /* ignore */ }
+}
+
+async function loadProjects()     { await loadDropdown('projectFilter', '/api/v1/projects',     'projects'); }
+async function loadEnvironments() { await loadDropdown('envFilter',     '/api/v1/environments', 'environments'); }
+
+// ── Issues ───────────────────────────────────────────────
+async function loadIssues() {
+  offset = 0;
+  activeId = null;
+  closeDetail();
+  await Promise.all([loadStats(), fetchIssues()]);
+}
+
+async function fetchIssues() {
+  const list = document.getElementById('issueList');
+  list.innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
+
+  const status  = document.getElementById('statusFilter').value;
+  const env     = document.getElementById('envFilter').value;
+  const project = document.getElementById('projectFilter').value;
+  const q       = document.getElementById('searchInput').value.trim();
+
+  try {
+    let data;
+    if (q) {
+      const params = new URLSearchParams({ q, limit: PAGE });
+      if (project) params.set('project', project);
+      data = await apiFetch(`/api/v1/issues/search?${params}`);
+      data.total  = data.issues?.length ?? 0;
+      data.offset = 0;
+    } else {
+      const params = new URLSearchParams({ limit: PAGE, offset });
+      if (status)  params.set('status',  status);
+      if (env)     params.set('env',     env);
+      if (project) params.set('project', project);
+      data = await apiFetch(`/api/v1/issues?${params}`);
+    }
+    total = data.total ?? 0;
+    renderIssues(data.issues ?? []);
+    renderPagination();
+  } catch(e) {
+    list.innerHTML = '<div class="empty">Failed to load — check API key or server.</div>';
+    showErr(e.message);
+  }
+}
+
+function renderIssues(issues) {
+  const list = document.getElementById('issueList');
+  if (!issues.length) { list.innerHTML = '<div class="empty">No issues found.</div>'; return; }
+
+  list.innerHTML = issues.map(iss => {
+    const levelClass = { warning: 'warning', info: 'info', debug: 'debug' }[iss.level] || 'error';
+    const metaParts  = [
+      iss.project_key ? `<span class="meta-tag">${escHtml(iss.project_key)}</span>` : '',
+      iss.environment ? `<span class="meta-tag">${escHtml(iss.environment)}</span>` : '',
+      iss.status !== 'unresolved' ? `<span class="badge badge-${iss.status}">${iss.status}</span>` : '',
+    ].filter(Boolean).join('<span class="meta-dot"></span>');
+
+    return `<div class="issue-row${iss.id === activeId ? ' active' : ''}" onclick="openDetail('${iss.id}')" id="row-${iss.id}">
+      <span class="badge badge-${levelClass}">${iss.level || 'error'}</span>
+      <div class="issue-body">
+        <div class="issue-title">${escHtml(iss.title)}</div>
+        <div class="issue-meta">${metaParts}</div>
+      </div>
+      <div class="issue-right">
+        <span class="count">${fmtCount(iss.count)}</span>
+        <span class="last-seen">${timeAgo(iss.last_seen)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPagination() {
+  const pag = document.getElementById('pagination');
+  if (total <= PAGE) { pag.style.display = 'none'; return; }
+  pag.style.display = 'flex';
+  const page  = Math.floor(offset / PAGE) + 1;
+  const pages = Math.ceil(total / PAGE);
+  document.getElementById('pageInfo').textContent = `Page ${page} of ${pages} (${total} issues)`;
+  document.getElementById('prevBtn').disabled = offset === 0;
+  document.getElementById('nextBtn').disabled = offset + PAGE >= total;
+}
+
+function prevPage() { if (offset > 0)            { offset = Math.max(0, offset - PAGE); fetchIssues(); } }
+function nextPage() { if (offset + PAGE < total)  { offset += PAGE; fetchIssues(); } }
+
+function onSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadIssues, 350);
+}
+
+// ── Detail ───────────────────────────────────────────────
+async function openDetail(id) {
+  activeId = id;
+  document.querySelectorAll('.issue-row').forEach(r => r.classList.remove('active'));
+  const row = document.getElementById(`row-${id}`);
+  if (row) row.classList.add('active');
+
+  document.getElementById('detail').classList.remove('hidden');
+  document.getElementById('detailScroll').innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
+
+  try {
+    const [issue, evData] = await Promise.all([
+      apiFetch(`/api/v1/issues/${id}`),
+      apiFetch(`/api/v1/issues/${id}/events?limit=5`),
+    ]);
+    renderDetail(issue, evData.events ?? []);
+  } catch(e) {
+    document.getElementById('detailScroll').innerHTML = `<div class="empty">Failed to load.<br>${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderDetail(issue, events) {
+  const isResolved = issue.status === 'resolved';
+  const isIgnored  = issue.status === 'ignored';
+  const levelClass = { warning: 'warning', info: 'info', debug: 'debug' }[issue.level] || 'error';
+
+  // Stack trace from first event
+  const frames = events[0]?.exception?.stacktrace?.frames
+               ?? events[0]?.stacktrace?.frames ?? [];
+  const stackHtml = frames.length ? `
+    <div class="section-title">Stack Trace</div>
+    <div class="stack">${[...frames].reverse().map(f => `
+      <div class="stack-frame">
+        <div class="frame-fn">${escHtml(f.function || '(anonymous)')}</div>
+        <div class="frame-loc">${escHtml(f.filename || '')}${f.lineno ? ':' + f.lineno : ''}</div>
+      </div>`).join('')}
+    </div>` : '';
+
+  // Grid cells
+  const cells = [
+    ['Status',      issue.status],
+    ['Count',       fmtCount(issue.count)],
+    ['First Seen',  timeAgo(issue.first_seen)],
+    ['Last Seen',   timeAgo(issue.last_seen)],
+    issue.project_key ? ['Project',     issue.project_key] : null,
+    issue.environment ? ['Environment', issue.environment] : null,
+    issue.platform    ? ['Platform',    issue.platform]    : null,
+    issue.release     ? ['Release',     issue.release]     : null,
+  ].filter(Boolean).map(([l, v]) => `
+    <div class="detail-cell">
+      <div class="detail-cell-lbl">${l}</div>
+      <div class="detail-cell-val">${escHtml(String(v))}</div>
+    </div>`).join('');
+
+  // Tags
+  const tags = Object.entries(issue.tags || {});
+  const tagsHtml = tags.length ? `
+    <div class="section-title">Tags</div>
+    <div class="tag-list">${tags.map(([k,v]) =>
+      `<div class="tag">${escHtml(k)}: <span>${escHtml(v)}</span></div>`).join('')}
+    </div>` : '';
+
+  // Events
+  const eventsHtml = events.length ? `
+    <div class="section-title">Recent Events</div>
+    ${events.map(ev => `
+      <div class="event-card">
+        <div class="event-card-meta">
+          <span>${fmtDate(ev.timestamp)}</span>
+          ${ev.environment ? `<span>${escHtml(ev.environment)}</span>` : ''}
+          ${ev.release     ? `<span>${escHtml(ev.release)}</span>`     : ''}
+        </div>
+        <div class="event-msg">${escHtml(ev.message || ev.exception?.value || '')}</div>
+        ${ev.user?.email || ev.user?.id ? `<div class="event-user">user: ${escHtml(ev.user.email || ev.user.id)}</div>` : ''}
+      </div>`).join('')}` : '';
+
+  document.getElementById('detailScroll').innerHTML = `
+    <div class="detail-header">
+      <div style="flex:1;min-width:0">
+        <div style="margin-bottom:6px"><span class="badge badge-${levelClass}">${issue.level || 'error'}</span></div>
+        <div class="detail-title">${escHtml(issue.title)}</div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+
+    <div class="detail-actions">
+      ${!isResolved ? `<button class="btn btn-resolve" onclick="setStatus('${issue.id}','resolved')">✓ Resolve</button>` : ''}
+      ${!isIgnored  ? `<button class="btn btn-ignore"  onclick="setStatus('${issue.id}','ignored')">Ignore</button>` : ''}
+      ${(isResolved||isIgnored) ? `<button class="btn btn-reopen" onclick="setStatus('${issue.id}','unresolved')">↩ Reopen</button>` : ''}
+    </div>
+
+    <div class="detail-grid">${cells}</div>
+    ${stackHtml}
+    ${tagsHtml}
+    ${eventsHtml}
+  `;
+}
+
+async function setStatus(id, status) {
+  try {
+    const res = await apiFetch(`/api/v1/issues/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+    if (res.removed === 'true') {
+      closeDetail();
+    } else if (activeId === id) {
+      openDetail(id);
+    }
+    await Promise.all([loadStats(), fetchIssues()]);
+  } catch(e) { showErr(e.message); }
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.add('hidden');
+  activeId = null;
+  document.querySelectorAll('.issue-row').forEach(r => r.classList.remove('active'));
+}
+
+// ── Clean DB ─────────────────────────────────────────────
+function toggleCleanMenu(e) {
+  e.stopPropagation();
+  document.getElementById('cleanMenu').classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('cleanMenu').classList.remove('open');
+});
+
+async function cleanDB(status) {
+  document.getElementById('cleanMenu').classList.remove('open');
+  const label = status ? `all ${status} issues` : 'ALL issues';
+  if (!confirm(`Delete ${label}? This cannot be undone.`)) return;
+  try {
+    const params = status ? `?status=${encodeURIComponent(status)}` : '';
+    const res = await apiFetch(`/api/v1/issues${params}`, { method: 'DELETE' });
+    closeDetail();
+    await loadAll();
+    showInfo(`Deleted ${res.deleted} issue${res.deleted !== 1 ? 's' : ''}.`);
+  } catch(e) { showErr(e.message); }
+}
+
+function showInfo(msg) {
+  const b = document.getElementById('errBanner');
+  b.className = 'err-banner';
+  b.style.background = 'rgba(63,185,80,.15)';
+  b.style.borderColor = 'var(--green)';
+  b.style.color = 'var(--green)';
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(() => { b.style.display = 'none'; b.style.background = ''; b.style.borderColor = ''; b.style.color = ''; }, 4000);
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60)    return `${s}s ago`;
+  if (s < 3600)  return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+function fmtDate(iso) { return iso ? new Date(iso).toLocaleString() : '—'; }
+function fmtCount(n)  {
+  if (!n) return '0';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return String(n);
+}
+function fmt(n) { return n == null ? '0' : String(n); }
+
+// ── Boot ──────────────────────────────────────────────────
+const savedKey = localStorage.getItem('errly_key') || '';
+document.getElementById('apiKey').value = savedKey;
+document.getElementById('apiKey').addEventListener('change', e => {
+  localStorage.setItem('errly_key', e.target.value);
+  loadAll();
+});
+
+async function loadConfig() {
+  try {
+    const cfg = await apiFetch('/api/v1/config');
+    document.getElementById('autoRemoveBadge').style.display =
+      cfg.auto_remove_resolved ? 'block' : 'none';
+  } catch(e) { /* ignore */ }
+}
+
+async function loadAll() {
+  await Promise.all([loadProjects(), loadEnvironments(), loadConfig()]);
+  await Promise.all([loadStats(), fetchIssues()]);
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

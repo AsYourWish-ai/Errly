@@ -1,0 +1,11 @@
+{
+  "name": "errly-ts-example",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@errly/sdk": "^1.0.0"
+  }
+}

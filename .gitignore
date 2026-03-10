@@ -1,0 +1,70 @@
+# ── Binaries ──────────────────────────────────────────────────────────────────
+errly-server
+errly-mcp
+src/mcp/errly-mcp
+src/server/errly-server
+
+# ── Go ────────────────────────────────────────────────────────────────────────
+*.test
+coverage.out
+*.out
+/vendor/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+*.pyc
+
+# ── Node / TypeScript ─────────────────────────────────────────────────────────
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# ── SQLite ────────────────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ── OS / Editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+
+# ── Claude Code ───────────────────────────────────────────────────────────────
+.claude/settings.local.json
+
+# ── SDK build artifacts ────────────────────────────────────────────────────────
+sdk/python/pyproject.toml
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+mnt/
+*.log
+/sandbox/
+CLAUDE.md

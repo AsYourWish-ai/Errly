@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "errly": {
+      "command": "docker",
+      "args": [
+        "run", "-i",
+        "--network", "host",
+        "-e", "ERRLY_URL=http://localhost:5080",
+        "-e", "ERRLY_API_KEY=test-secret",
+        "errly-mcp"
+      ]
+    }
+  }
+}

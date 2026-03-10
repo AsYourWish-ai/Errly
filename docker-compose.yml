@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  errly:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "5080:5080"
+    volumes:
+      - errly_data:/data
+    environment:
+      - ERRLY_ADDR=:5080
+      - ERRLY_DB_PATH=/data/errly.db
+      - ERRLY_API_KEY=${ERRLY_API_KEY:-changeme}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    develop:
+      watch:
+        - path: ./src/server
+          action: rebuild
+          ignore:
+            - "**/*_test.go"
+            - "coverage.out"
+
+  errly-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    stdin_open: true
+    tty: true
+    environment:
+      - ERRLY_URL=http://errly:5080
+      - ERRLY_API_KEY=${ERRLY_API_KEY:-changeme}
+    depends_on:
+      - errly
+
+volumes:
+  errly_data:

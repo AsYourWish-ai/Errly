@@ -1,0 +1,38 @@
+{
+  "name": "@errly/sdk",
+  "version": "1.0.0",
+  "description": "Lightweight self-hosted error monitoring SDK for Next.js / TypeScript",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "index.ts"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AsYourWish-ai/Errly.git",
+    "directory": "sdk/ts"
+  },
+  "homepage": "https://github.com/AsYourWish-ai/Errly",
+  "scripts": {
+    "build": "tsup index.ts --format esm,cjs --dts --outDir dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["errly", "error-monitoring", "nextjs", "observability"],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "vitest": "^2.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
