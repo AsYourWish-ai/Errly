@@ -154,6 +154,7 @@
     <label>API Key</label>
     <input class="key-input" id="apiKey" type="password" placeholder="enter api key…" autocomplete="off">
   </div>
+  <div id="autoRemoveBadge" style="display:none;font-size:11px;padding:3px 8px;border-radius:4px;background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.3);">auto-remove on</div>
   <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
 </header>
 
@@ -443,9 +444,13 @@ function renderDetail(issue, events) {
 
 async function setStatus(id, status) {
   try {
-    await apiFetch(`/api/v1/issues/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+    const res = await apiFetch(`/api/v1/issues/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+    if (res.removed === 'true') {
+      closeDetail();
+    } else if (activeId === id) {
+      openDetail(id);
+    }
     await Promise.all([loadStats(), fetchIssues()]);
-    if (activeId === id) openDetail(id);
   } catch(e) { showErr(e.message); }
 }
 
@@ -484,8 +489,16 @@ document.getElementById('apiKey').addEventListener('change', e => {
   loadAll();
 });
 
+async function loadConfig() {
+  try {
+    const cfg = await apiFetch('/api/v1/config');
+    document.getElementById('autoRemoveBadge').style.display =
+      cfg.auto_remove_resolved ? 'block' : 'none';
+  } catch(e) { /* ignore */ }
+}
+
 async function loadAll() {
-  await Promise.all([loadProjects(), loadEnvironments()]);
+  await Promise.all([loadProjects(), loadEnvironments(), loadConfig()]);
   await Promise.all([loadStats(), fetchIssues()]);
 }
 

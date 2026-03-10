@@ -24,7 +24,7 @@ func main() {
 	}
 	defer storage.Close()
 
-	handler := NewHandlerWithOptions(storage, logger, cfg.APIKey, cfg.RatePerMin)
+	handler := NewHandlerWithOptions(storage, logger, cfg.APIKey, cfg.RatePerMin, cfg.AutoRemoveResolved)
 
 	srv := &http.Server{
 		Addr:         cfg.Addr,
@@ -52,10 +52,11 @@ func main() {
 }
 
 type Config struct {
-	Addr       string
-	DBPath     string
-	APIKey     string
-	RatePerMin int
+	Addr                string
+	DBPath              string
+	APIKey              string
+	RatePerMin          int
+	AutoRemoveResolved  bool
 }
 
 func loadConfig() Config {
@@ -66,10 +67,11 @@ func loadConfig() Config {
 		}
 	}
 	cfg := Config{
-		Addr:       getEnv("ERRLY_ADDR", ":5080"),
-		DBPath:     getEnv("ERRLY_DB_PATH", "./errly.db"),
-		APIKey:     getEnv("ERRLY_API_KEY", ""),
-		RatePerMin: ratePerMin,
+		Addr:               getEnv("ERRLY_ADDR", ":5080"),
+		DBPath:             getEnv("ERRLY_DB_PATH", "./errly.db"),
+		APIKey:             getEnv("ERRLY_API_KEY", ""),
+		RatePerMin:         ratePerMin,
+		AutoRemoveResolved: getEnv("ERRLY_AUTO_REMOVE_RESOLVED", "") == "true",
 	}
 	if cfg.APIKey == "" {
 		fmt.Fprintln(os.Stderr, "[WARN] ERRLY_API_KEY not set — server is unprotected!")

@@ -315,6 +315,7 @@ GET  /healthz                    — Health check
 | `ERRLY_DB_PATH` | `./errly.db` | SQLite database path |
 | `ERRLY_API_KEY` | _(none)_ | API key — **set this!** |
 | `ERRLY_RATE_LIMIT` | `100` | Max ingest requests/min per IP |
+| `ERRLY_AUTO_REMOVE_RESOLVED` | `false` | Delete issues automatically when resolved |
 | `ERRLY_URL` | `http://localhost:5080` | MCP → server URL |
 
 ---

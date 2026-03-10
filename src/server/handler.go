@@ -12,22 +12,24 @@ import (
 )
 
 type Handler struct {
-	storage     *Storage
-	logger      *slog.Logger
-	apiKey      string
-	rateLimiter *RateLimiter
+	storage            *Storage
+	logger             *slog.Logger
+	apiKey             string
+	rateLimiter        *RateLimiter
+	autoRemoveResolved bool
 }
 
 func NewHandler(storage *Storage, logger *slog.Logger, apiKey string) *Handler {
-	return NewHandlerWithOptions(storage, logger, apiKey, 100)
+	return NewHandlerWithOptions(storage, logger, apiKey, 100, false)
 }
 
-func NewHandlerWithOptions(storage *Storage, logger *slog.Logger, apiKey string, ratePerMin int) *Handler {
+func NewHandlerWithOptions(storage *Storage, logger *slog.Logger, apiKey string, ratePerMin int, autoRemoveResolved bool) *Handler {
 	return &Handler{
-		storage:     storage,
-		logger:      logger,
-		apiKey:      apiKey,
-		rateLimiter: NewRateLimiter(ratePerMin),
+		storage:            storage,
+		logger:             logger,
+		apiKey:             apiKey,
+		rateLimiter:        NewRateLimiter(ratePerMin),
+		autoRemoveResolved: autoRemoveResolved,
 	}
 }
 
@@ -50,6 +52,9 @@ func (h *Handler) Routes() http.Handler {
 	// Projects & Environments
 	mux.HandleFunc("GET /api/v1/projects",     h.auth(h.handleListProjects))
 	mux.HandleFunc("GET /api/v1/environments", h.auth(h.handleListEnvironments))
+
+	// Server config (public — UI reads this on load)
+	mux.HandleFunc("GET /api/v1/config", h.handleConfig)
 
 	// Health
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -167,6 +172,14 @@ func (h *Handler) handleUpdateIssueStatus(w http.ResponseWriter, r *http.Request
 		http.Error(w, "status must be resolved, unresolved, or ignored", http.StatusBadRequest)
 		return
 	}
+	if h.autoRemoveResolved && body.Status == "resolved" {
+		if err := h.storage.DeleteIssue(id); err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "resolved", "removed": "true"})
+		return
+	}
 	if err := h.storage.UpdateIssueStatus(id, body.Status); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -239,6 +252,12 @@ func (h *Handler) handleListEnvironments(w http.ResponseWriter, r *http.Request)
 		envs = []string{}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"environments": envs})
+}
+
+func (h *Handler) handleConfig(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"auto_remove_resolved": h.autoRemoveResolved,
+	})
 }
 
 // Middleware: API key auth

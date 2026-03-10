@@ -217,6 +217,27 @@ func (s *Storage) UpdateIssueStatus(id, status string) error {
 	return nil
 }
 
+// DeleteIssue removes an issue and all its events.
+func (s *Storage) DeleteIssue(id string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if _, err := tx.Exec("DELETE FROM events WHERE issue_id=?", id); err != nil {
+		return err
+	}
+	res, err := tx.Exec("DELETE FROM issues WHERE id=?", id)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("issue not found")
+	}
+	return tx.Commit()
+}
+
 // GetStats returns aggregate counts, optionally filtered by project.
 func (s *Storage) GetStats(project string) (*Stats, error) {
 	where := ""
