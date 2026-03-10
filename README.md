@@ -1,5 +1,7 @@
 # Errly — Lightweight Self-Hosted Error Monitoring
 
+![Errly Banner](banner.png)
+
 **Built for the AI agent era.** Errly is a self-hosted error monitoring system designed from the ground up to work seamlessly with AI agents — not just humans. Your AI agent can read errors, trace stack traces, search issues, and resolve them autonomously via MCP, while your team watches everything from a clean web dashboard.
 
 > Drop-in for small teams and solo developers who want observability without the SaaS price tag, and AI agents that can actually act on what they see.
