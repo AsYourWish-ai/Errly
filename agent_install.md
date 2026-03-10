@@ -180,7 +180,190 @@ Tell the user:
 
 ---
 
-## Step 11 — Build MCP image (optional)
+## Step 11 — SDK integration test (optional)
+
+Ask the user:
+
+> Which SDK would you like to test?
+> **1** — Go
+> **2** — Python
+> **3** — TypeScript / Node.js
+> **4** — Skip
+
+Then execute the matching section below.
+
+---
+
+### Option 1 — Go SDK
+
+Check Go is installed:
+```bash
+go version   # requires 1.21+
+```
+
+Create a temp test file:
+```bash
+mkdir -p /tmp/errly-go-test && cat > /tmp/errly-go-test/main.go << 'EOF'
+package main
+
+import (
+	"context"
+	"fmt"
+	errly "github.com/AsYourWish-ai/Errly/sdk/go"
+)
+
+func main() {
+	client := errly.New(
+		"http://localhost:5080",
+		"ERRLY_API_KEY_PLACEHOLDER",
+		errly.WithProject("go-sdk-test"),
+		errly.WithEnvironment("test"),
+	)
+	defer client.Flush()
+
+	id := client.CaptureError(context.Background(), fmt.Errorf("SDK test error from Go"))
+	fmt.Println("captured event:", id)
+
+	client.CaptureMessage(context.Background(), "info", "Go SDK integration test passed")
+	fmt.Println("Go SDK test complete")
+}
+EOF
+```
+
+Replace the placeholder key and run:
+```bash
+sed -i '' "s/ERRLY_API_KEY_PLACEHOLDER/$ERRLY_API_KEY/" /tmp/errly-go-test/main.go
+cd /tmp/errly-go-test
+go mod init errly-test
+go mod edit -replace github.com/AsYourWish-ai/Errly/sdk/go=<PATH_TO_REPO>/sdk/go
+go mod tidy
+go run main.go
+```
+
+Replace `<PATH_TO_REPO>` with the absolute path to the cloned Errly repo.
+
+Verify the issue appeared:
+```bash
+curl -sf "http://localhost:5080/api/v1/issues?project=go-sdk-test" \
+  -H "X-Errly-Key: $ERRLY_API_KEY" | cat
+```
+
+Expected: at least 1 issue from project `go-sdk-test`.
+
+---
+
+### Option 2 — Python SDK
+
+Check Python is installed:
+```bash
+python3 --version   # requires 3.9+
+```
+
+Install the SDK and run a quick test:
+```bash
+pip install -e <PATH_TO_REPO>/sdk/python
+```
+
+Replace `<PATH_TO_REPO>` with the absolute path to the cloned Errly repo.
+
+Create and run a test script:
+```bash
+python3 - << EOF
+from errly import Errly
+import os
+
+client = Errly(
+    url="http://localhost:5080",
+    api_key="$ERRLY_API_KEY",
+    project="python-sdk-test",
+    environment="test",
+)
+
+# Capture an exception
+try:
+    raise ValueError("SDK test error from Python")
+except Exception as e:
+    event_id = client.capture_exception(e)
+    print(f"captured exception: {event_id}")
+
+# Capture a message
+client.capture_message("Python SDK integration test passed", level="info")
+print("Python SDK test complete")
+
+client.flush()
+EOF
+```
+
+Verify the issue appeared:
+```bash
+curl -sf "http://localhost:5080/api/v1/issues?project=python-sdk-test" \
+  -H "X-Errly-Key: $ERRLY_API_KEY" | cat
+```
+
+Expected: at least 1 issue from project `python-sdk-test`.
+
+---
+
+### Option 3 — TypeScript / Node.js SDK
+
+Check Node.js is installed:
+```bash
+node --version   # requires 18+
+npm --version
+```
+
+Create a temp test project:
+```bash
+mkdir -p /tmp/errly-ts-test && cd /tmp/errly-ts-test
+
+cat > package.json << 'EOF'
+{
+  "name": "errly-ts-test",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@errly/sdk": "file:<PATH_TO_REPO>/sdk/ts"
+  }
+}
+EOF
+```
+
+Replace `<PATH_TO_REPO>` with the absolute path to the cloned Errly repo, then:
+
+```bash
+npm install
+
+cat > test.mjs << EOF
+import { Errly } from '@errly/sdk'
+
+const client = new Errly({
+  url: 'http://localhost:5080',
+  apiKey: '$ERRLY_API_KEY',
+  project: 'ts-sdk-test',
+  environment: 'test',
+})
+
+client.captureError(new Error('SDK test error from TypeScript'))
+console.log('captured error')
+
+client.captureMessage('TypeScript SDK integration test passed', 'info')
+console.log('TypeScript SDK test complete')
+EOF
+
+node test.mjs
+```
+
+Verify the issue appeared:
+```bash
+curl -sf "http://localhost:5080/api/v1/issues?project=ts-sdk-test" \
+  -H "X-Errly-Key: $ERRLY_API_KEY" | cat
+```
+
+Expected: at least 1 issue from project `ts-sdk-test`.
+
+---
+
+## Step 12 — Build MCP image (optional)
 
 If the user wants AI agent access via MCP:
 
@@ -213,7 +396,7 @@ Tell the user to add this to their `.mcp.json` or Claude Desktop config:
 
 ---
 
-## Step 12 — Report results
+## Step 13 — Report results
 
 When all steps pass, output a summary like:
 
@@ -228,7 +411,8 @@ When all steps pass, output a summary like:
 ✓ Resolve issue: OK
 ✓ Stats updated: OK
 ✓ Dashboard: http://localhost:5080
-✓ MCP image: built (optional)
+✓ SDK test: Go / Python / TypeScript — OK  (or skipped)
+✓ MCP image: built (or skipped)
 
 Errly is ready.
 ```
