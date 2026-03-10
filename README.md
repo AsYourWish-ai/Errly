@@ -19,6 +19,16 @@ Most error monitoring tools are built for humans clicking dashboards. Errly is d
 
 ---
 
+## Install with AI Agent — One Step
+
+Got Claude Code, Cursor, or any AI agent? Just say:
+
+> Read **https://github.com/AsYourWish-ai/Errly/blob/main/agent_install.md** and do it.
+
+The agent will check prerequisites, start the server, run integration tests, verify all API endpoints, and report back when Errly is ready.
+
+---
+
 ## Table of Contents
 
 1. [Quick Start](#1-quick-start)
