@@ -2,7 +2,7 @@
 
 A minimal Sentry-like error monitoring system with a web dashboard, REST API, MCP server for AI agents, and SDKs for Go, Python, and TypeScript.
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/auttaporn.f)
+[![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/auttaporn.f)
 
 ---
 
@@ -363,6 +363,6 @@ This repo also ships pre-built slash commands in `.claude/commands/`. Open the p
 
 ## Support
 
-If you find Errly useful, consider buying me a coffee!
+Building and maintaining this project — including all the AI-assisted development — costs real tokens. If Errly saves you time, a coffee would help keep the tokens flowing!
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/auttaporn.f)
+[![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/auttaporn.f)
