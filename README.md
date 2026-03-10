@@ -1,8 +1,21 @@
 # Errly — Lightweight Self-Hosted Error Monitoring
 
-A minimal Sentry-like error monitoring system with a web dashboard, REST API, MCP server for AI agents, and SDKs for Go, Python, and TypeScript.
+**Built for the AI agent era.** Errly is a self-hosted error monitoring system designed from the ground up to work seamlessly with AI agents — not just humans. Your AI agent can read errors, trace stack traces, search issues, and resolve them autonomously via MCP, while your team watches everything from a clean web dashboard.
+
+> Drop-in for small teams and solo developers who want observability without the SaaS price tag, and AI agents that can actually act on what they see.
 
 [![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/auttaporn.f)
+
+## Why Errly?
+
+Most error monitoring tools are built for humans clicking dashboards. Errly is different:
+
+- **MCP-native** — AI agents (Claude, Cursor, etc.) can list, search, read, and resolve issues directly via the Model Context Protocol
+- **Skill files included** — drop `skill/` into your agent's context and it instantly knows how to install, integrate, and operate Errly
+- **Claude Code slash commands** — `/install-errly`, `/implement-sdk`, `/use-mcp` let your AI assistant guide you step by step
+- **Simple REST API** — structured JSON responses that are easy for agents and humans to parse
+- **Self-hosted** — your error data stays on your infrastructure, not a third-party SaaS
+- **Lightweight** — single Go binary, SQLite storage, no dependencies to manage
 
 ---
 
