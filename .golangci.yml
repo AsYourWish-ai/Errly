@@ -1,0 +1,24 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - staticcheck
+    - govet
+    - ineffassign
+    - unused
+
+linters-settings:
+  errcheck:
+    # Allow ignoring errors on http response body close and http writes
+    exclude-functions:
+      - (net/http.ResponseWriter).Write
+      - (*net/http.Client).Do
+
+issues:
+  exclude-rules:
+    # Test files are allowed to ignore errors freely
+    - path: _test\.go
+      linters:
+        - errcheck

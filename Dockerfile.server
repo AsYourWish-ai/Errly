@@ -1,0 +1,17 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+COPY src/server/go.mod src/server/go.sum ./
+RUN go mod download
+
+COPY src/server/ .
+RUN CGO_ENABLED=0 GOOS=linux go build -o errly-server .
+
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates wget
+
+WORKDIR /app
+COPY --from=builder /app/errly-server .
+
+EXPOSE 5080
+CMD ["./errly-server"]

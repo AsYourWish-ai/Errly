@@ -1,0 +1,16 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+COPY src/mcp/go.mod ./
+RUN go mod download
+
+COPY src/mcp/ .
+RUN CGO_ENABLED=0 GOOS=linux go build -o errly-mcp .
+
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+COPY --from=builder /app/errly-mcp .
+
+CMD ["./errly-mcp"]
